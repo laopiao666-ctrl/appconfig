@@ -24,7 +24,6 @@
   <script>
   'use strict';
   const SOURCES = [
-    'https://gitee.com/laopiao666-ctrl/appconfig/raw/master/laopiao666-ctrl',
     'https://raw.githubusercontent.com/laopiao666-ctrl/appconfig/main/laopiao666-ctrl'
   ];
   const TIMEOUT_MS = 5000;
@@ -74,7 +73,7 @@
     enterNode.hidden = true;
     try {
       for (let i = 0; i < SOURCES.length; i++) {
-        statusNode.textContent = i === 0 ? '正在连接，请稍候…' : '切换线路中，请耐心等待';
+        statusNode.textContent = '正在连接，请稍候…';
         try {
           const target = await readSource(SOURCES[i]);
           statusNode.textContent = '连接成功，正在进入…';
