@@ -32,12 +32,42 @@
     'https://raw.githubusercontent.com/laopiao666-ctrl/appconfig/main/laopiao666-ctrl'
   ];
   const TIMEOUT_MS = 5000;
+  const SPLASH_VISIBLE_MS = 2000;
+  const SPLASH_LOAD_TIMEOUT_MS = 5000;
   const statusNode = document.getElementById('status');
   const retryNode = document.getElementById('retry');
   const enterNode = document.getElementById('enter');
   const shortVersion = new URLSearchParams(location.search).get('page') === '2';
   if (shortVersion) document.getElementById('title').textContent = document.title = '免费短剧';
   let running = false;
+
+  function waitForSplash() {
+    const image = document.querySelector('.startup-image');
+    if (!image) return Promise.resolve();
+    return new Promise(resolve => {
+      let settled = false;
+      let loadTimer;
+      function finish(loaded) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(loadTimer);
+        image.removeEventListener('load', onLoad);
+        image.removeEventListener('error', onError);
+        if (!loaded) { resolve(); return; }
+        // Start the two seconds after the image has had a chance to paint.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          setTimeout(resolve, SPLASH_VISIBLE_MS);
+        }));
+      }
+      const onLoad = () => finish(image.naturalWidth > 0);
+      const onError = () => finish(false);
+      image.addEventListener('load', onLoad);
+      image.addEventListener('error', onError);
+      // A broken or stalled image must not permanently block the working entry.
+      loadTimer = setTimeout(() => finish(false), SPLASH_LOAD_TIMEOUT_MS);
+      if (image.complete) finish(image.naturalWidth > 0);
+    });
+  }
 
   function parseConfig(text) {
     // One complete line only; do not execute content from configuration files.
@@ -76,12 +106,14 @@
     running = true;
     retryNode.hidden = true;
     enterNode.hidden = true;
+    const splashFinished = waitForSplash();
     try {
       for (let i = 0; i < SOURCES.length; i++) {
         statusNode.textContent = '正在连接，请稍候…';
         try {
           const target = await readSource(SOURCES[i]);
           statusNode.textContent = '连接成功，正在进入…';
+          await splashFinished;
           enterNode.href = target;
           enterNode.hidden = false;
           retryNode.hidden = false;
