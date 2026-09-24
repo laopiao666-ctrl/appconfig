@@ -29,6 +29,7 @@
   <script>
   'use strict';
   const SOURCES = [
+    new URL('./laopiao666-ctrl', location.href).href,
     'https://raw.githubusercontent.com/laopiao666-ctrl/appconfig/main/laopiao666-ctrl'
   ];
   const TIMEOUT_MS = 5000;
@@ -109,7 +110,7 @@
     const splashFinished = waitForSplash();
     try {
       for (let i = 0; i < SOURCES.length; i++) {
-        statusNode.textContent = '正在连接，请稍候…';
+        statusNode.textContent = i === 0 ? '正在连接，请稍候…' : '正在重新连接，请稍候…';
         try {
           const target = await readSource(SOURCES[i]);
           statusNode.textContent = '连接成功，正在进入…';
